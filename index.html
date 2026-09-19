@@ -1,0 +1,2401 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تفوق - جدول المذاكرة الأسبوعي</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2F6F4E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="تفوق">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F3F4EF;
+    --paper-card: #FFFFFF;
+    --ink: #1F2A24;
+    --ink-soft: #5B6660;
+    --line: #DEDDD3;
+    --accent: #2F6F4E;
+    --accent-soft: #E4EFE8;
+    --gold: #B8912B;
+    --gold-soft: #F5EEDA;
+    --shadow: rgba(31, 42, 36, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #141815;
+      --paper-card: #1D2320;
+      --ink: #EDEFEA;
+      --ink-soft: #9AA69E;
+      --line: #33392F* .01;
+      --line: #333A32;
+      --accent: #5FAE84;
+      --accent-soft: #21322A;
+      --gold: #D8B554;
+      --gold-soft: #302A17;
+      --shadow: rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #141815;
+    --paper-card: #1D2320;
+    --ink: #EDEFEA;
+    --ink-soft: #9AA69E;
+    --line: #333A32;
+    --accent: #5FAE84;
+    --accent-soft: #21322A;
+    --gold: #D8B554;
+    --gold-soft: #302A17;
+    --shadow: rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Tajawal', sans-serif;
+    min-height: 100vh;
+    padding: 32px 16px 64px;
+  }
+
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  header.top {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  header.top h1 {
+    font-family: 'Amiri', serif;
+    font-weight: 700;
+    font-size: clamp(28px, 5vw, 40px);
+    margin: 0 0 6px;
+  }
+
+  header.top p {
+    color: var(--ink-soft);
+    margin: 0;
+    font-size: 15px;
+  }
+
+  .overall {
+    background: var(--paper-card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 26px;
+    box-shadow: 0 2px 10px var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .overall .ring {
+    flex-shrink: 0;
+    width: 62px;
+    height: 62px;
+  }
+
+  .overall .info {
+    flex: 1;
+  }
+
+  .overall .info .label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+
+  .bar-track {
+    height: 8px;
+    background: var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width .35s ease;
+    width: 0%;
+  }
+
+  .backlog-stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 2px 0 10px;
+  }
+  .backlog-stat .bar-track { flex: 1; }
+  .backlog-stat .backlog-pct {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+    min-width: 34px;
+    text-align: left;
+  }
+
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .reset-btn:hover { border-color: var(--ink-soft); color: var(--ink); }
+  .reset-btn:focus-visible, .item input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  @media (min-width: 680px) {
+    .grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .day-card {
+    background: var(--paper-card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 20px 16px;
+    box-shadow: 0 2px 10px var(--shadow);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .day-card.today {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-soft), 0 2px 10px var(--shadow);
+  }
+
+  .day-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+  }
+
+  .day-head h2 {
+    font-family: 'Amiri', serif;
+    font-size: 21px;
+    margin: 0;
+  }
+
+  .day-head .count {
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .section-label {
+    font-size: 12.5px;
+    color: var(--gold);
+    background: var(--gold-soft);
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    margin: 10px 0 6px;
+  }
+
+  .section-label:first-child { margin-top: 0; }
+
+  ul.items {
+    list-style: none;
+    margin: 0 0 4px;
+    padding: 0;
+  }
+
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 5px 2px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .item:hover { background: var(--accent-soft); }
+
+  .item input {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    margin-top: 2px;
+    border: 1.5px solid var(--ink-soft);
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+    background: transparent;
+  }
+
+  .item input:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .item input:checked::after {
+    content: "";
+    position: absolute;
+    right: 5px;
+    top: 1.5px;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(35deg);
+  }
+
+  .item label {
+    font-size: 14.5px;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+
+  .item.checked label {
+    color: var(--ink-soft);
+    text-decoration: line-through;
+    text-decoration-color: var(--accent);
+  }
+
+  .item { position: relative; }
+  .item .label-wrap { flex: 1; min-width: 0; }
+  .item .edit-input {
+    width: 100%;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14.5px;
+    color: var(--ink);
+    background: var(--paper-card);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 3px 6px;
+    box-sizing: border-box;
+  }
+  .item-actions {
+    display: none;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .item:hover .item-actions,
+  .item.editing .item-actions { display: flex; }
+  .item.editing label { display: none; }
+  .icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 5px;
+    border-radius: 5px;
+    line-height: 1;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .icon-btn:hover { background: var(--accent-soft); color: var(--ink); }
+  .icon-btn.delete:hover { color: #C0392B; background: #F8E5E2; }
+
+  .add-item-row {
+    margin: 4px 0 2px;
+  }
+  .add-item-btn {
+    background: transparent;
+    border: 1px dashed var(--line);
+    color: var(--ink-soft);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+  }
+  .add-item-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .backlog-card {
+    margin-bottom: 20px;
+    border-style: dashed;
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .chip-btn {
+    background: var(--paper-card);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .chip-btn:hover { border-color: var(--accent); color: var(--ink); }
+  #fileImportInput { display: none; }
+
+  .streak-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--gold-soft);
+    color: var(--gold);
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+
+  .history-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 54px;
+    margin: 4px 0 2px;
+  }
+  .history-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .history-bar {
+    width: 100%;
+    max-width: 22px;
+    background: var(--accent);
+    border-radius: 3px 3px 0 0;
+    min-height: 2px;
+  }
+  .history-label {
+    font-size: 9.5px;
+    color: var(--ink-soft);
+  }
+
+  .subject-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 6px;
+    flex-shrink: 0;
+  }
+
+  [draggable="true"] { cursor: grab; }
+  .item.dragging { opacity: .4; }
+  .item.drag-over { border-top: 2px solid var(--accent); }
+  .drag-handle {
+    color: var(--ink-soft);
+    font-size: 13px;
+    cursor: grab;
+    padding: 0 2px;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  .note-toggle-active { color: var(--accent) !important; }
+  .item-note {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+    white-space: pre-wrap;
+  }
+  .note-input {
+    width: 100%;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 12.5px;
+    color: var(--ink);
+    background: var(--paper-card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 4px 6px;
+    margin-top: 4px;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--accent);
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 12px;
+    font-size: 14px;
+    max-width: 90%;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(0,0,0,.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease, transform .3s ease;
+    z-index: 50;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .date-display {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
+  .date-display span { white-space: nowrap; }
+
+  .exam-card { margin-bottom: 20px; }
+  .exam-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 4px;
+    border-radius: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .exam-item:last-child { border-bottom: none; }
+  .exam-item .exam-main { flex: 1; min-width: 0; }
+  .exam-item .exam-subject { font-size: 14.5px; font-weight: 700; }
+  .exam-item .exam-datetime { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .exam-countdown {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .exam-countdown.urgent { background: #FBE2DE; color: #C0392B; }
+  .exam-countdown.past { background: var(--line); color: var(--ink-soft); }
+  .exam-edit-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+  .exam-edit-row input {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: var(--paper-card);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 5px 8px;
+  }
+
+  .icon-btn.confirm-armed {
+    background: #C0392B !important;
+    color: #fff !important;
+  }
+  .reset-btn.confirm-armed,
+  .chip-btn.confirm-armed {
+    background: #C0392B;
+    color: #fff;
+    border-color: #C0392B;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--paper-card);
+    border-radius: 14px;
+    padding: 20px;
+    max-width: 340px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,.3);
+  }
+  .modal-box h3 { margin: 0 0 12px; font-size: 16px; font-family: 'Amiri', serif; }
+  .modal-box input[type="time"] {
+    width: 100%;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .reminder-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .reminder-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 12.5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .reminder-chip button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0;
+  }
+  .modal-actions { display: flex; gap: 8px; }
+  .modal-actions button {
+    flex: 1;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13.5px;
+    padding: 9px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+  }
+  .modal-actions .primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .focus-mode #grid .day-card:not(.today) { display: none; }
+
+  @media print {
+    #pomodoroPage, #guidePage { display: none !important; }
+    .toolbar, .chip-btn, .reset-btn, .item-actions, .drag-handle,
+    #historyCard, #examCard .add-item-row, .add-item-row, .toast, .modal-overlay,
+    #shareCanvasWrap { display: none !important; }
+    body { padding: 0; background: #fff; color: #000; }
+    .day-card, .backlog-card { box-shadow: none; border: 1px solid #999; break-inside: avoid; }
+    .grid { grid-template-columns: 1fr 1fr; }
+    .subject-dot { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  .section-label-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 0 6px;
+  }
+  .section-label-row:first-child { margin-top: 0; }
+  .section-label-row .section-label { margin: 0; }
+  .priority-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 1px 4px;
+    border-radius: 5px;
+    line-height: 1;
+  }
+  .priority-btn:hover { background: var(--accent-soft); }
+
+  .pomo-task-banner {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    margin-bottom: 18px;
+    display: none;
+    text-align: center;
+  }
+  .pomo-task-banner.show { display: block; }
+
+  .pomo-mode-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+  .pomo-mode-tab {
+    background: var(--paper-card);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .pomo-mode-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .pomo-mode-tab.active.rest { background: #3E6FA8; border-color: #3E6FA8; }
+
+  .pomo-ring-wrap { position: relative; width: 240px; height: 240px; margin: 0 auto 22px; }
+  .pomo-ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .pomo-ring-time {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .pomo-ring-time .pomo-time { font-size: 42px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pomo-ring-time .pomo-label { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
+
+  .pomo-controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 22px; }
+  .pomo-ctrl-btn {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    padding: 11px 22px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+  }
+  .pomo-ctrl-btn.primary { background: var(--accent); color: #fff; }
+  .pomo-ctrl-btn.secondary { background: var(--paper-card); color: var(--ink); border: 1px solid var(--line); }
+
+  .pomo-stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 22px;
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .pomo-stats-row b { color: var(--ink); font-size: 16px; display: block; }
+
+  .pomo-settings {
+    background: var(--paper-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-align: right;
+    margin-bottom: 18px;
+  }
+  .pomo-settings h3 { margin: 0 0 10px; font-size: 14px; font-family: 'Amiri', serif; }
+  .pomo-setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13.5px;
+  }
+  .pomo-setting-row input {
+    width: 60px;
+    padding: 5px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Tajawal', sans-serif;
+    text-align: center;
+  }
+
+  .pomo-back-link {
+    display: inline-block;
+    margin-top: 6px;
+    color: var(--ink-soft);
+    font-size: 13px;
+    background: transparent;
+    border: 1px solid var(--line);
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: 'Tajawal', sans-serif;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    margin-top: 28px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="schedulePage">
+  <header class="top">
+    <h1>جدول المذاكرة الأسبوعي</h1>
+    <p>علّم على اللي خلصته، والتقدم بيتسجل تلقائي على جهازك</p>
+    <div class="date-display">
+      <span id="gregorianDate">—</span>
+      <span id="hijriDate">—</span>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <span class="streak-badge" id="streakBadge">🔥 0 يوم متتالي</span>
+    <button class="chip-btn" id="themeToggle" type="button">🌙 الوضع الليلي</button>
+    <button class="chip-btn" id="reminderBtn" type="button">🔔 إضافة تذكير</button>
+    <button class="chip-btn" id="exportBtn" type="button">⬇️ تصدير البيانات</button>
+    <button class="chip-btn" id="importBtn" type="button">⬆️ استيراد البيانات</button>
+    <input type="file" id="fileImportInput" accept="application/json">
+    <button class="chip-btn" id="pomodoroToggleBtn" type="button">🍅 بومودورو</button>
+    <button class="chip-btn" id="focusModeBtn" type="button">🎯 وضع التركيز</button>
+    <button class="chip-btn" id="printBtn" type="button">🖨️ نسخة للطباعة</button>
+    <button class="chip-btn" id="shareImageBtn" type="button">📷 مشاركة كصورة</button>
+    <button class="chip-btn" id="wipeDaysBtn" type="button">🗑️ بيانات جديدة</button>
+    <button class="chip-btn" id="guideToggleBtn" type="button">📖 دليل الاستخدام</button>
+  </div>
+
+  <div class="overall">
+    <svg class="ring" viewBox="0 0 62 62">
+      <circle cx="31" cy="31" r="26" fill="none" stroke="var(--line)" stroke-width="7"/>
+      <circle id="ringFg" cx="31" cy="31" r="26" fill="none" stroke="var(--accent)" stroke-width="7"
+        stroke-linecap="round" stroke-dasharray="163.36" stroke-dashoffset="163.36"
+        transform="rotate(-90 31 31)"/>
+      <text id="ringText" x="31" y="36" text-anchor="middle" font-size="15" font-family="Tajawal" fill="var(--ink)">0%</text>
+    </svg>
+    <div class="info">
+      <div class="label"><span id="doneCount">0</span> من <span id="totalCount">0</span> مهمة خلصانة</div>
+      <div class="bar-track"><div class="bar-fill" id="overallBar"></div></div>
+    </div>
+    <button class="reset-btn" id="resetBtn">إعادة تصفير الأسبوع</button>
+  </div>
+
+  <div class="day-card" id="historyCard" style="margin-bottom:20px;">
+    <div class="day-head"><h2 style="font-size:16px;">أداء آخر الأسابيع</h2></div>
+    <div class="history-chart" id="historyChart"></div>
+  </div>
+
+
+  <div class="day-card backlog-card">
+    <div class="day-head">
+      <h2>التراكمات</h2>
+      <span class="count" id="backlogCount">0/0</span>
+    </div>
+    <div class="backlog-stat">
+      <div class="bar-track"><div class="bar-fill" id="backlogBar"></div></div>
+      <span class="backlog-pct" id="backlogPct">0%</span>
+    </div>
+    <ul class="items" id="backlogList"></ul>
+    <div class="add-item-row">
+      <button class="add-item-btn" id="addBacklogBtn" type="button">+ إضافة تراكم</button>
+    </div>
+  </div>
+
+  <div class="day-card exam-card" id="examCard">
+    <div class="day-head">
+      <h2>امتحانات قادمة</h2>
+      <span class="count" id="examCount">0</span>
+    </div>
+    <ul class="items" id="examList" style="list-style:none;padding:0;margin:0;"></ul>
+    <div class="add-item-row">
+      <button class="add-item-btn" id="addExamBtn" type="button">+ إضافة امتحان</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    الجدول محفوظ في المتصفح ده بس — لو غيّرت جهاز أو متصفح هيرجع فاضي
+    <br>تم الإنشاء بواسطة معاذ صبري
+  </footer>
+</div>
+
+<div class="wrap" id="pomodoroPage" style="display:none;">
+  <h1 style="font-family:'Amiri',serif;font-size:clamp(24px,6vw,32px);margin:0 0 4px;text-align:center;">🍅 مؤقت البومودورو</h1>
+  <p style="color:var(--ink-soft);font-size:13.5px;margin:0 0 18px;text-align:center;">ركّز 25 دقيقة، ريّح 5 — وكرر</p>
+
+  <div class="pomo-task-banner" id="pomoTaskBanner"></div>
+
+  <div class="pomo-mode-tabs">
+    <button class="pomo-mode-tab active" id="pomoWorkTab" type="button">تركيز</button>
+    <button class="pomo-mode-tab rest" id="pomoRestTab" type="button">راحة</button>
+  </div>
+
+  <div class="pomo-ring-wrap">
+    <svg viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="54" fill="none" stroke="var(--line)" stroke-width="9"/>
+      <circle id="pomoRingFg" cx="60" cy="60" r="54" fill="none" stroke="var(--accent)" stroke-width="9"
+        stroke-linecap="round" stroke-dasharray="339.3" stroke-dashoffset="0"/>
+    </svg>
+    <div class="pomo-ring-time">
+      <div class="pomo-time" id="pomoTimeDisplay">25:00</div>
+      <div class="pomo-label" id="pomoModeLabel">وقت التركيز</div>
+    </div>
+  </div>
+
+  <div class="pomo-controls">
+    <button class="pomo-ctrl-btn primary" id="pomoStartPauseBtn">ابدأ</button>
+    <button class="pomo-ctrl-btn secondary" id="pomoResetBtn">إعادة ضبط</button>
+  </div>
+
+  <div class="pomo-stats-row">
+    <div><b id="pomoSessionsToday">0</b>جلسات اليوم</div>
+    <div><b id="pomoTotalFocusMin">0</b>دقيقة تركيز</div>
+  </div>
+
+  <div class="pomo-settings">
+    <h3>الإعدادات</h3>
+    <div class="pomo-setting-row"><span>مدة التركيز (دقيقة)</span><input type="number" id="pomoWorkMinInput" min="1" max="120" value="25"></div>
+    <div class="pomo-setting-row"><span>مدة الراحة (دقيقة)</span><input type="number" id="pomoRestMinInput" min="1" max="60" value="5"></div>
+  </div>
+
+  <div style="text-align:center;">
+    <button class="pomo-back-link" id="pomoBackBtn" type="button">← رجوع للجدول</button>
+  </div>
+</div>
+
+<div class="wrap" id="guidePage" style="display:none;">
+  <h1 style="font-family:'Amiri',serif;font-size:clamp(24px,6vw,32px);margin:0 0 4px;text-align:center;">📖 دليل الاستخدام</h1>
+  <p style="color:var(--ink-soft);font-size:13.5px;margin:0 0 18px;text-align:center;">كل مميزات الجدول في مكان واحد</p>
+
+  <div class="day-card">
+    <div class="day-head"><h2 style="font-size:16px;">🟢 البداية</h2></div>
+    <ul style="margin:8px 0 0;padding-right:18px;font-size:13.5px;line-height:1.9;color:var(--ink);">
+      <li>الدائرة والبار فوق بيوروك نسبة إنجازك من كل مهام الأسبوع.</li>
+      <li>اليوم الحالي بيتحدد تلقائي: لما تخلّص كل مهام يوم، بينتقل التظليل لليوم اللي بعده لوحده، ولما تخلص كل أيام الأسبوع بيرجع يبدأ من الأول تاني.</li>
+      <li>"🔥 يوم متتالي" بيعدّلك كام يوم صح ورا بعض خلّصت فيهم مهام يومك.</li>
+      <li>"إعادة تصفير الأسبوع" بتصفّر كل علامات ✓ (من غير ما تمسح المهام نفسها)، وبتسجل أداء الأسبوع في الرسم البياني، وبتديك رسالة تحفيزية.</li>
+    </ul>
+  </div>
+
+  <div class="day-card">
+    <div class="day-head"><h2 style="font-size:16px;">📝 المهام اليومية</h2></div>
+    <ul style="margin:8px 0 0;padding-right:18px;font-size:13.5px;line-height:1.9;color:var(--ink);">
+      <li><b>✎ تعديل:</b> تغيّر نص أي مهمة.</li>
+      <li><b>📝 ملاحظة:</b> تضيف تفاصيل زيادة تحت المهمة.</li>
+      <li><b>×  حذف:</b> دوس مرة تتحول لـ✓ حمرا، دوس تاني في خلال 3 ثواني للتأكيد.</li>
+      <li><b>⋮⋮ سحب:</b> رتّب المهام زي ما تحب بالسحب.</li>
+      <li><b>🔗 ربط بامتحان:</b> اختار من القايمة الصغيرة لو المهمة دي مذاكرة لامتحان معين.</li>
+      <li><b>▶️ بومودورو:</b> يودّيك لصفحة المؤقت مع اسم المهمة فوق.</li>
+      <li><b>+ إضافة مهمة:</b> تحت كل قسم في اليوم.</li>
+      <li><b>🟡🔴🟢 أولوية المادة:</b> دوس على النقطة جنب اسم القسم (زي "صباح"/"مساء") لتغيير أهميتها.</li>
+    </ul>
+  </div>
+
+  <div class="day-card">
+    <div class="day-head"><h2 style="font-size:16px;">📌 التراكمات والامتحانات</h2></div>
+    <ul style="margin:8px 0 0;padding-right:18px;font-size:13.5px;line-height:1.9;color:var(--ink);">
+      <li><b>التراكمات:</b> خانة مستقلة للمهام المتأخرة، ليها إحصائية خاصة بيها.</li>
+      <li><b>امتحانات قادمة:</b> ضيف امتحان بتاريخ ووقت، وهتلاقي عداد تنازلي حي بيتحدث كل دقيقة، ولونه بيبقى أحمر لو باقي أقل من 24 ساعة.</li>
+      <li>لو ربطت مهام بامتحان معين، هيظهرلك تحت الامتحان "🔗 كام من كام مهمة مرتبطة" وتقدر تفتحها تشوف تفاصيلها.</li>
+    </ul>
+  </div>
+
+  <div class="day-card">
+    <div class="day-head"><h2 style="font-size:16px;">🛠️ أدوات مساعدة</h2></div>
+    <ul style="margin:8px 0 0;padding-right:18px;font-size:13.5px;line-height:1.9;color:var(--ink);">
+      <li><b>🍅 بومودورو:</b> صفحة تانية جوه نفس الرابط، مؤقت 25/5 دقيقة قابل للتعديل، بيسجل جلساتك اليومية.</li>
+      <li><b>🔔 تذكير:</b> حدد وقت يومي يفكّرك تذاكر (بيشتغل بس والصفحة مفتوحة في المتصفح).</li>
+      <li><b>🎯 وضع التركيز:</b> يخفي كل الأيام ويسيبلك بس يوم النهاردة.</li>
+      <li><b>🖨️ نسخة للطباعة:</b> تصميم نضيف يتطبع على ورقة.</li>
+      <li><b>📷 مشاركة كصورة:</b> يطلعلك صورة PNG بملخص تقدمك تقدر تبعتها.</li>
+    </ul>
+  </div>
+
+  <div class="day-card">
+    <div class="day-head"><h2 style="font-size:16px;">💾 البيانات والمظهر</h2></div>
+    <ul style="margin:8px 0 0;padding-right:18px;font-size:13.5px;line-height:1.9;color:var(--ink);">
+      <li>كل حاجة بتتحفظ تلقائي في متصفح جهازك بس (لو غيرت جهاز أو متصفح هترجع فاضية).</li>
+      <li><b>⬇️ تصدير / ⬆️ استيراد:</b> احفظ نسخة احتياطية من بياناتك أو رجّعها على جهاز تاني.</li>
+      <li><b>🗑️ بيانات جديدة:</b> يمسح كل مهام الأيام (مش التراكمات ولا الامتحانات) عشان تبني جدولك من الصفر بنفسك.</li>
+      <li><b>🌙 الوضع الليلي:</b> تبديل يدوي بين ليلي ونهاري.</li>
+      <li>التاريخ فوق بيوريلك الميلادي والهجري مع بعض.</li>
+    </ul>
+  </div>
+
+  <div style="text-align:center;">
+    <button class="pomo-back-link" id="guideBackBtn" type="button">← رجوع للجدول</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="reminderModal">
+  <div class="modal-box">
+    <h3>تذكيرات المذاكرة</h3>
+    <div class="reminder-chip-row" id="reminderChips"></div>
+    <input type="time" id="reminderTimeInput">
+    <div class="modal-actions">
+      <button type="button" id="reminderCancelBtn">إغلاق</button>
+      <button type="button" class="primary" id="reminderAddBtn">إضافة</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const schedule = [
+  { day: "السبت", sections: [
+    { label: "الصباح", items: ["محاضرة عبد المعبود", "حل واجب عبد المعبود"] },
+    { label: "بعد درس العربي", items: ["حل العربي الجديد كله"] }
+  ]},
+  { day: "الأحد", sections: [
+    { label: "الصباح", items: ["خالد صقر المحاضرة الجديدة", "حل واجب خالد صقر"] },
+    { label: "بعد درس الكيمياء", items: ["حل علي الدرس الجديد الامتحان"] }
+  ]},
+  { day: "الاتنين", sections: [
+    { label: "الصباح", items: ["حل علي الأحياء بعد الدرس شوية"] },
+    { label: "بعد درس الفيزياء", items: ["حل كتاب الامتحان الجديد فيزياء"] }
+  ]},
+  { day: "الثلاثاء", sections: [
+    { label: "الصباح", items: ["محاضرة محمد صلاح جديد", "حل واجب محمد صلاح"] },
+    { label: "المساء", items: ["محاضرة عبد المعبود جديد", "حل واجب عبد المعبود الجديد"] }
+  ]},
+  { day: "الأربعاء", sections: [
+    { label: "على مدار اليوم", items: ["حل باقي الأحياء الامتحان", "حل تراكمات (1)", "حل تراكمات (2)"] }
+  ]},
+  { day: "الخميس", sections: [
+    { label: "الصباح", items: ["محاضرة الجوهري أحياء", "واجب الجوهري + المقالي"] },
+    { label: "المساء", items: ["مراجعة خفيفة انجليزي", "حل لو في تراكمات"] }
+  ]},
+  { day: "الجمعة", sections: [
+    { label: "على مدار اليوم", items: ["حفظ الانجليزي الجديد", "حل على الحفظ", "حل على القاعدة أو السكلز أو القصة", "تراكمات"] }
+  ]}
+];
+
+const STORAGE_KEY = "study-schedule-v2";
+
+// schedule[] lists days starting from Saturday (السبت=0 ... الجمعة=6), while JS's
+// Date.getDay() returns 0 for Sunday. This converts a real weekday to the matching
+// position in our Saturday-first array.
+function todayScheduleIndex() {
+  return (new Date().getDay() + 1) % 7;
+}
+
+function buildDefaultDays() {
+  // deep copy schedule into editable model: items become {text, done}
+  return schedule.map(dayObj => ({
+    day: dayObj.day,
+    sections: dayObj.sections.map(section => ({
+      label: section.label,
+      items: section.items.map(text => ({ text, done: false }))
+    }))
+  }));
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // migrate from older format (plain array = just days, no backlog)
+      if (Array.isArray(parsed)) return { days: parsed, backlog: [], streak: { count: 0, lastDate: null }, history: [], reminders: [], exams: [], subjectWeights: {}, currentDayIndex: todayScheduleIndex(), _satFirstFixV1: true };
+      if (!parsed.backlog) parsed.backlog = [];
+      if (!parsed.streak) parsed.streak = { count: 0, lastDate: null };
+      if (!parsed.history) parsed.history = [];
+      if (!parsed.reminders) parsed.reminders = [];
+      if (!parsed.exams) parsed.exams = [];
+      if (!parsed.subjectWeights) parsed.subjectWeights = {};
+      if (typeof parsed.currentDayIndex !== 'number') parsed.currentDayIndex = todayScheduleIndex();
+      if (!parsed._satFirstFixV1) {
+        // one-time correction: currentDayIndex was previously computed assuming a
+        // Sunday-first array, but schedule[] actually starts on Saturday.
+        parsed.currentDayIndex = todayScheduleIndex();
+        parsed._satFirstFixV1 = true;
+      }
+      return parsed;
+    }
+  } catch (e) {}
+  return { days: buildDefaultDays(), backlog: [], streak: { count: 0, lastDate: null }, history: [], reminders: [], exams: [], subjectWeights: {}, currentDayIndex: todayScheduleIndex(), _satFirstFixV1: true };
+}
+
+function saveData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch (e) {}
+}
+
+let appData = loadData();
+let data = appData.days;
+
+const arabicDays = ["الأحد","الاتنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+const todayName = arabicDays[new Date().getDay()];
+
+const SUBJECT_PALETTE = ["#2F6F4E","#B8912B","#3E6FA8","#A8483E","#7A55A8","#4E9BA6","#A85E9B","#6E8B3D"];
+const subjectColorCache = {};
+function colorForSubject(label) {
+  if (subjectColorCache[label]) return subjectColorCache[label];
+  let hash = 0;
+  for (let i = 0; i < label.length; i++) hash = (hash * 31 + label.charCodeAt(i)) >>> 0;
+  const color = SUBJECT_PALETTE[hash % SUBJECT_PALETTE.length];
+  subjectColorCache[label] = color;
+  return color;
+}
+
+const THEME_KEY = "study-schedule-theme";
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️ الوضع النهاري' : '🌙 الوضع الليلي';
+}
+(function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved) {
+    applyTheme(saved);
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.getElementById('themeToggle').textContent = '☀️ الوضع النهاري';
+  }
+})();
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+});
+
+function renderDates() {
+  const now = new Date();
+  try {
+    const greg = new Intl.DateTimeFormat('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now);
+    document.getElementById('gregorianDate').textContent = '📅 ' + greg;
+  } catch (e) {
+    document.getElementById('gregorianDate').textContent = '📅 ' + now.toLocaleDateString();
+  }
+  try {
+    const hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }).format(now);
+    document.getElementById('hijriDate').textContent = '🌙 ' + hijri;
+  } catch (e) {
+    document.getElementById('hijriDate').textContent = '';
+  }
+}
+renderDates();
+
+const FOCUS_KEY = "study-schedule-focus";
+function applyFocusMode(on) {
+  document.body.classList.toggle('focus-mode', on);
+  document.getElementById('focusModeBtn').textContent = on ? '🎯 إظهار كل الأيام' : '🎯 وضع التركيز';
+}
+(function initFocus() {
+  applyFocusMode(localStorage.getItem(FOCUS_KEY) === '1');
+})();
+document.getElementById('focusModeBtn').addEventListener('click', () => {
+  const next = !document.body.classList.contains('focus-mode');
+  localStorage.setItem(FOCUS_KEY, next ? '1' : '0');
+  applyFocusMode(next);
+});
+
+document.getElementById('printBtn').addEventListener('click', () => {
+  window.print();
+});
+
+// ===================== Pomodoro (same page, separate view) =====================
+const POMO_STORAGE_KEY = 'pomodoro-v1';
+
+function loadPomoState() {
+  try {
+    const raw = localStorage.getItem(POMO_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { workMin: 25, restMin: 5, sessionsToday: 0, totalFocusMin: 0, lastDate: null };
+}
+function savePomoState() {
+  try { localStorage.setItem(POMO_STORAGE_KEY, JSON.stringify(pomoState)); } catch (e) {}
+}
+
+let pomoState = loadPomoState();
+const pomoTodayStr = new Date().toDateString();
+if (pomoState.lastDate !== pomoTodayStr) {
+  pomoState.sessionsToday = 0;
+  pomoState.lastDate = pomoTodayStr;
+  savePomoState();
+}
+
+let pomoMode = 'work';
+let pomoRemaining = pomoState.workMin * 60;
+let pomoTotalForMode = pomoState.workMin * 60;
+let pomoRunning = false;
+let pomoTickHandle = null;
+const POMO_CIRCUM = 339.3;
+
+function pomoFmt(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function pomoUpdateDisplay() {
+  document.getElementById('pomoTimeDisplay').textContent = pomoFmt(pomoRemaining);
+  document.getElementById('pomoModeLabel').textContent = pomoMode === 'work' ? 'وقت التركيز' : 'وقت الراحة';
+  const pct = pomoTotalForMode ? (pomoTotalForMode - pomoRemaining) / pomoTotalForMode : 0;
+  document.getElementById('pomoRingFg').style.strokeDashoffset = POMO_CIRCUM * (1 - pct);
+  document.getElementById('pomoRingFg').style.stroke = pomoMode === 'work' ? 'var(--accent)' : '#3E6FA8';
+  document.getElementById('pomoWorkTab').classList.toggle('active', pomoMode === 'work');
+  document.getElementById('pomoRestTab').classList.toggle('active', pomoMode === 'rest');
+  document.getElementById('pomoSessionsToday').textContent = pomoState.sessionsToday;
+  document.getElementById('pomoTotalFocusMin').textContent = pomoState.totalFocusMin;
+}
+
+function pomoSwitchMode(newMode) {
+  pomoMode = newMode;
+  const mins = pomoMode === 'work' ? pomoState.workMin : pomoState.restMin;
+  pomoRemaining = mins * 60;
+  pomoTotalForMode = mins * 60;
+  pomoUpdateDisplay();
+}
+
+function pomoBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = pomoMode === 'work' ? 880 : 660;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.6);
+  } catch (e) {}
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+}
+
+function pomoTick() {
+  pomoRemaining--;
+  if (pomoRemaining <= 0) {
+    if (pomoMode === 'work') {
+      pomoState.sessionsToday++;
+      pomoState.totalFocusMin += pomoState.workMin;
+      savePomoState();
+    }
+    pomoBeep();
+    pomoStop();
+    pomoSwitchMode(pomoMode === 'work' ? 'rest' : 'work');
+    return;
+  }
+  pomoUpdateDisplay();
+}
+
+function pomoStart() {
+  if (pomoRunning) return;
+  pomoRunning = true;
+  document.getElementById('pomoStartPauseBtn').textContent = 'إيقاف مؤقت';
+  pomoTickHandle = setInterval(pomoTick, 1000);
+  pomoUpdateDisplay();
+}
+function pomoStop() {
+  pomoRunning = false;
+  document.getElementById('pomoStartPauseBtn').textContent = 'استكمال';
+  clearInterval(pomoTickHandle);
+  pomoUpdateDisplay();
+}
+
+document.getElementById('pomoStartPauseBtn').addEventListener('click', () => {
+  if (pomoRunning) pomoStop(); else pomoStart();
+});
+document.getElementById('pomoResetBtn').addEventListener('click', () => {
+  pomoStop();
+  document.getElementById('pomoStartPauseBtn').textContent = 'ابدأ';
+  pomoSwitchMode(pomoMode);
+});
+document.getElementById('pomoWorkTab').addEventListener('click', () => {
+  pomoStop();
+  document.getElementById('pomoStartPauseBtn').textContent = 'ابدأ';
+  pomoSwitchMode('work');
+});
+document.getElementById('pomoRestTab').addEventListener('click', () => {
+  pomoStop();
+  document.getElementById('pomoStartPauseBtn').textContent = 'ابدأ';
+  pomoSwitchMode('rest');
+});
+
+const pomoWorkInput = document.getElementById('pomoWorkMinInput');
+const pomoRestInput = document.getElementById('pomoRestMinInput');
+pomoWorkInput.value = pomoState.workMin;
+pomoRestInput.value = pomoState.restMin;
+pomoWorkInput.addEventListener('change', () => {
+  const v = Math.max(1, Math.min(120, parseInt(pomoWorkInput.value, 10) || 25));
+  pomoState.workMin = v;
+  savePomoState();
+  if (pomoMode === 'work' && !pomoRunning) pomoSwitchMode('work');
+});
+pomoRestInput.addEventListener('change', () => {
+  const v = Math.max(1, Math.min(60, parseInt(pomoRestInput.value, 10) || 5));
+  pomoState.restMin = v;
+  savePomoState();
+  if (pomoMode === 'rest' && !pomoRunning) pomoSwitchMode('rest');
+});
+
+pomoUpdateDisplay();
+
+// --- view switching between schedule / pomodoro / guide pages ---
+const ALL_PAGE_IDS = ['schedulePage', 'pomodoroPage', 'guidePage'];
+function showPage(id) {
+  ALL_PAGE_IDS.forEach(pid => {
+    document.getElementById(pid).style.display = (pid === id) ? 'block' : 'none';
+  });
+  window.scrollTo(0, 0);
+}
+function showPomodoroPage(taskText) {
+  showPage('pomodoroPage');
+  const banner = document.getElementById('pomoTaskBanner');
+  if (taskText) {
+    banner.textContent = '🎯 بتذاكر: ' + taskText;
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+function showSchedulePage() {
+  showPage('schedulePage');
+}
+window.openPomodoroForTask = function (taskText) {
+  showPomodoroPage(taskText);
+};
+document.getElementById('pomodoroToggleBtn').addEventListener('click', () => showPomodoroPage(null));
+document.getElementById('pomoBackBtn').addEventListener('click', showSchedulePage);
+document.getElementById('guideToggleBtn').addEventListener('click', () => showPage('guidePage'));
+document.getElementById('guideBackBtn').addEventListener('click', showSchedulePage);
+
+const grid = document.getElementById('grid');
+
+function taskDoneFeedback() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 720;
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.25);
+  } catch (e) {}
+  if (navigator.vibrate) navigator.vibrate(40);
+}
+
+function armConfirm(btn, onConfirm) {
+  if (btn.dataset.armed === '1') {
+    clearTimeout(btn._armTimeout);
+    const original = btn.dataset.origText;
+    btn.dataset.armed = '0';
+    if (original !== undefined) btn.textContent = original;
+    btn.title = btn.classList.contains('reset-btn') ? '' : 'حذف';
+    btn.classList.remove('confirm-armed');
+    onConfirm();
+    return;
+  }
+  btn.dataset.origText = btn.textContent;
+  btn.dataset.armed = '1';
+  btn.textContent = btn.classList.contains('reset-btn') ? '✓ اضغط للتأكيد' : '✓';
+  btn.title = 'اضغط تاني للتأكيد';
+  btn.classList.add('confirm-armed');
+  btn._armTimeout = setTimeout(() => {
+    btn.dataset.armed = '0';
+    btn.textContent = btn.dataset.origText;
+    btn.title = btn.classList.contains('reset-btn') ? '' : 'حذف';
+    btn.classList.remove('confirm-armed');
+  }, 3000);
+}
+
+function render() {
+  grid.innerHTML = '';
+
+  data.forEach((dayObj, dayIdx) => {
+    const card = document.createElement('div');
+    card.className = 'day-card' + (dayIdx === appData.currentDayIndex ? ' today' : '');
+
+    const head = document.createElement('div');
+    head.className = 'day-head';
+    head.innerHTML = `<h2>${dayObj.day}</h2><span class="count" data-day="${dayIdx}">0/0</span>`;
+    card.appendChild(head);
+
+    dayObj.sections.forEach((section, secIdx) => {
+      const lblRow = document.createElement('div');
+      lblRow.className = 'section-label-row';
+
+      const lbl = document.createElement('div');
+      lbl.className = 'section-label';
+      lbl.textContent = section.label;
+      const subjColor = colorForSubject(section.label);
+      lbl.style.color = subjColor;
+      lbl.style.background = subjColor + '22';
+
+      const PRIORITY_LEVELS = [
+        { key: 'medium', icon: '🟡', title: 'أهمية متوسطة (دوس للتغيير)' },
+        { key: 'high', icon: '🔴', title: 'أهمية عالية (دوس للتغيير)' },
+        { key: 'low', icon: '🟢', title: 'أهمية منخفضة (دوس للتغيير)' }
+      ];
+      const currentPriority = appData.subjectWeights[section.label] || 'medium';
+      const priorityBtn = document.createElement('button');
+      priorityBtn.className = 'priority-btn';
+      priorityBtn.type = 'button';
+      function setPriorityBtnDisplay() {
+        const p = PRIORITY_LEVELS.find(p => p.key === (appData.subjectWeights[section.label] || 'medium'));
+        priorityBtn.textContent = p.icon;
+        priorityBtn.title = p.title;
+      }
+      setPriorityBtnDisplay();
+      priorityBtn.addEventListener('click', () => {
+        const idx = PRIORITY_LEVELS.findIndex(p => p.key === (appData.subjectWeights[section.label] || 'medium'));
+        const next = PRIORITY_LEVELS[(idx + 1) % PRIORITY_LEVELS.length];
+        appData.subjectWeights[section.label] = next.key;
+        saveData();
+        setPriorityBtnDisplay();
+      });
+
+      lblRow.appendChild(lbl);
+      lblRow.appendChild(priorityBtn);
+      card.appendChild(lblRow);
+
+      const ul = document.createElement('ul');
+      ul.className = 'items';
+
+      section.items.forEach((item, itemIdx) => {
+        const li = document.createElement('li');
+        li.className = 'item' + (item.done ? ' checked' : '');
+        li.draggable = true;
+        li.dataset.itemIdx = itemIdx;
+        const id = `d${dayIdx}-s${secIdx}-i${itemIdx}`;
+
+        const dragHandle = document.createElement('span');
+        dragHandle.className = 'drag-handle';
+        dragHandle.textContent = '⋮⋮';
+
+        const dot = document.createElement('span');
+        dot.className = 'subject-dot';
+        dot.style.background = subjColor;
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = id;
+        checkbox.checked = item.done;
+        checkbox.addEventListener('change', () => {
+          item.done = checkbox.checked;
+          li.classList.toggle('checked', checkbox.checked);
+          if (checkbox.checked) taskDoneFeedback();
+          saveData();
+          updateProgress();
+        });
+
+        const labelWrap = document.createElement('div');
+        labelWrap.className = 'label-wrap';
+        const label = document.createElement('label');
+        label.setAttribute('for', id);
+        label.textContent = item.text;
+        labelWrap.appendChild(label);
+
+        if (item.note) {
+          const noteEl = document.createElement('div');
+          noteEl.className = 'item-note';
+          noteEl.textContent = item.note;
+          labelWrap.appendChild(noteEl);
+        }
+
+        if (item.examLink) {
+          const linkTag = document.createElement('div');
+          linkTag.className = 'item-note';
+          linkTag.style.color = 'var(--rest, #3E6FA8)';
+          linkTag.textContent = '🔗 مرتبط بامتحان: ' + item.examLink;
+          labelWrap.appendChild(linkTag);
+        }
+
+        const examLinkSelect = document.createElement('select');
+        examLinkSelect.className = 'exam-link-select';
+        examLinkSelect.title = 'اربط بامتحان';
+        examLinkSelect.style.cssText = 'font-size:11px;max-width:70px;border:none;background:transparent;color:var(--ink-soft);';
+        const noneOpt = document.createElement('option');
+        noneOpt.value = '';
+        noneOpt.textContent = '🔗 بدون';
+        examLinkSelect.appendChild(noneOpt);
+        appData.exams.forEach(exam => {
+          const opt = document.createElement('option');
+          opt.value = exam.subject;
+          opt.textContent = exam.subject;
+          if (item.examLink === exam.subject) opt.selected = true;
+          examLinkSelect.appendChild(opt);
+        });
+        examLinkSelect.addEventListener('change', () => {
+          item.examLink = examLinkSelect.value || null;
+          saveData();
+          render();
+        });
+        if (!appData.exams.length) examLinkSelect.style.display = 'none';
+
+        const actions = document.createElement('div');
+        actions.className = 'item-actions';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'icon-btn edit';
+        editBtn.type = 'button';
+        editBtn.title = 'تعديل';
+        editBtn.textContent = '✎';
+        editBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          startEdit();
+        });
+
+        const noteBtn = document.createElement('button');
+        noteBtn.className = 'icon-btn note' + (item.note ? ' note-toggle-active' : '');
+        noteBtn.type = 'button';
+        noteBtn.title = 'ملاحظة';
+        noteBtn.textContent = '📝';
+        noteBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          startNoteEdit();
+        });
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'icon-btn delete';
+        delBtn.type = 'button';
+        delBtn.title = 'حذف';
+        delBtn.textContent = '×';
+        delBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          armConfirm(delBtn, () => {
+            section.items.splice(itemIdx, 1);
+            saveData();
+            render();
+          });
+        });
+
+        const pomodoroLink = document.createElement('button');
+        pomodoroLink.className = 'icon-btn pomodoro-link';
+        pomodoroLink.type = 'button';
+        pomodoroLink.title = 'ابدأ بومودورو للمهمة دي';
+        pomodoroLink.textContent = '▶️';
+        pomodoroLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.openPomodoroForTask(item.text);
+        });
+
+        actions.appendChild(editBtn);
+        actions.appendChild(noteBtn);
+        actions.appendChild(pomodoroLink);
+        actions.appendChild(examLinkSelect);
+        actions.appendChild(delBtn);
+
+        li.appendChild(dragHandle);
+        li.appendChild(dot);
+        li.appendChild(checkbox);
+        li.appendChild(labelWrap);
+        li.appendChild(actions);
+        ul.appendChild(li);
+
+        // --- drag and drop reordering ---
+        li.addEventListener('dragstart', () => {
+          li.classList.add('dragging');
+        });
+        li.addEventListener('dragend', () => {
+          li.classList.remove('dragging');
+          ul.querySelectorAll('.item').forEach(x => x.classList.remove('drag-over'));
+        });
+        li.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          li.classList.add('drag-over');
+        });
+        li.addEventListener('dragleave', () => li.classList.remove('drag-over'));
+        li.addEventListener('drop', (e) => {
+          e.preventDefault();
+          li.classList.remove('drag-over');
+          const fromIdx = parseInt(ul.querySelector('.dragging')?.dataset.itemIdx, 10);
+          const toIdx = parseInt(li.dataset.itemIdx, 10);
+          if (isNaN(fromIdx) || isNaN(toIdx) || fromIdx === toIdx) return;
+          const moved = section.items.splice(fromIdx, 1)[0];
+          section.items.splice(toIdx, 0, moved);
+          saveData();
+          render();
+        });
+
+        function startEdit() {
+          li.classList.add('editing');
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.className = 'edit-input';
+          input.value = item.text;
+          labelWrap.innerHTML = '';
+          labelWrap.appendChild(input);
+          input.focus();
+          input.select();
+
+          function finish(save) {
+            if (save) {
+              const val = input.value.trim();
+              if (val) item.text = val;
+            }
+            li.classList.remove('editing');
+            saveData();
+            render();
+          }
+
+          input.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
+            if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+          });
+          input.addEventListener('blur', () => finish(true));
+        }
+
+        function startNoteEdit() {
+          labelWrap.innerHTML = '';
+          labelWrap.appendChild(label);
+          const textarea = document.createElement('textarea');
+          textarea.className = 'note-input';
+          textarea.rows = 2;
+          textarea.placeholder = 'اكتب ملاحظة عن المهمة دي...';
+          textarea.value = item.note || '';
+          labelWrap.appendChild(textarea);
+          textarea.focus();
+
+          function finish() {
+            const val = textarea.value.trim();
+            item.note = val;
+            saveData();
+            render();
+          }
+          textarea.addEventListener('blur', finish);
+          textarea.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); finish(); }
+            if (ev.key === 'Escape') { ev.preventDefault(); render(); }
+          });
+        }
+      });
+
+      card.appendChild(ul);
+
+      const addRow = document.createElement('div');
+      addRow.className = 'add-item-row';
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-item-btn';
+      addBtn.type = 'button';
+      addBtn.textContent = '+ إضافة مهمة';
+      addBtn.addEventListener('click', () => {
+        section.items.push({ text: 'مهمة جديدة', done: false });
+        saveData();
+        render();
+        updateProgress();
+        // focus the new item's edit input
+        const newLi = document.querySelectorAll('#grid .day-card')[dayIdx]
+          .querySelectorAll('.section-label-row')[secIdx].nextElementSibling
+          .querySelectorAll('.item');
+        const lastLi = newLi[newLi.length - 1];
+        if (lastLi) lastLi.querySelector('.icon-btn.edit').click();
+      });
+      addRow.appendChild(addBtn);
+      card.appendChild(addRow);
+    });
+
+    grid.appendChild(card);
+  });
+
+  updateProgress();
+}
+
+function isDayFullyDone(idx) {
+  const day = data[idx];
+  if (!day) return false;
+  let total = 0, done = 0;
+  day.sections.forEach(s => s.items.forEach(it => { total++; if (it.done) done++; }));
+  return total === 0 || done === total;
+}
+
+function advanceDayIfNeeded() {
+  let advanced = false;
+  let wrapped = false;
+  let guard = 0;
+  while (isDayFullyDone(appData.currentDayIndex) && guard < 7) {
+    if (appData.currentDayIndex === 6) wrapped = true;
+    appData.currentDayIndex = (appData.currentDayIndex + 1) % 7;
+    advanced = true;
+    guard++;
+  }
+  if (advanced) {
+    saveData();
+    showToast(wrapped ? '🎉 خلصت كل أيام الأسبوع! يوم جديد بدأ من تاني.' : '✅ خلصت مهام النهاردة! انتقلنا لليوم اللي بعده.');
+  }
+  return advanced;
+}
+
+function updateProgress() {
+  let done = 0, total = 0;
+  let todayFullyDone = false;
+  document.querySelectorAll('#grid .day-card').forEach((card) => {
+    const boxes = card.querySelectorAll('input[type="checkbox"]');
+    let dayDone = 0;
+    boxes.forEach(b => { if (b.checked) dayDone++; });
+    done += dayDone;
+    total += boxes.length;
+    const countEl = card.querySelector('.count');
+    if (countEl) countEl.textContent = `${dayDone}/${boxes.length}`;
+    if (card.classList.contains('today') && boxes.length > 0 && dayDone === boxes.length) {
+      todayFullyDone = true;
+    }
+  });
+
+  document.getElementById('doneCount').textContent = done;
+  document.getElementById('totalCount').textContent = total;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('overallBar').style.width = pct + '%';
+
+  const circumference = 163.36;
+  const offset = circumference - (pct / 100) * circumference;
+  document.getElementById('ringFg').style.strokeDashoffset = offset;
+  document.getElementById('ringText').textContent = pct + '%';
+
+  updateStreak(todayFullyDone);
+
+  if (todayFullyDone && advanceDayIfNeeded()) {
+    render();
+  }
+
+  return pct;
+}
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+
+function updateStreak(todayFullyDone) {
+  const key = todayKey();
+  if (todayFullyDone && appData.streak.lastDate !== key) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yKey = `${yesterday.getFullYear()}-${yesterday.getMonth()+1}-${yesterday.getDate()}`;
+    appData.streak.count = (appData.streak.lastDate === yKey) ? appData.streak.count + 1 : 1;
+    appData.streak.lastDate = key;
+    saveData();
+  }
+  document.getElementById('streakBadge').textContent = `🔥 ${appData.streak.count} يوم متتالي`;
+}
+
+function renderHistory() {
+  const chart = document.getElementById('historyChart');
+  chart.innerHTML = '';
+  const entries = appData.history.slice(-8);
+  if (!entries.length) {
+    chart.innerHTML = '<div style="font-size:12.5px;color:var(--ink-soft);">هيظهر هنا أداء الأسابيع اللي فاتت بعد أول تصفير</div>';
+    return;
+  }
+  entries.forEach(entry => {
+    const wrap = document.createElement('div');
+    wrap.className = 'history-bar-wrap';
+    const bar = document.createElement('div');
+    bar.className = 'history-bar';
+    bar.style.height = Math.max(entry.pct, 2) + '%';
+    bar.title = entry.pct + '%';
+    const lbl = document.createElement('div');
+    lbl.className = 'history-label';
+    lbl.textContent = entry.pct + '%';
+    wrap.appendChild(bar);
+    wrap.appendChild(lbl);
+    chart.appendChild(wrap);
+  });
+}
+
+const MOTIVATIONAL_MESSAGES = [
+  "أسبوع جديد، صفحة جديدة — كمّل بنفس الجدية.",
+  "كل مجهود بتبذله دلوقتي هيفرق وقت النتيجة.",
+  "الثبات على المذاكرة أهم من الحماس المؤقت.",
+  "خطوة كل يوم أحسن من قفزة مرة واحدة.",
+  "التعب اللي حاسس بيه دلوقتي هو أساس النجاح بعدين.",
+  "ما تقارنش نفسك بحد، قارن نفسك بأمس بس.",
+  "الأسبوع اللي فات علّمك حاجة، خده معاك للأسبوع الجديد.",
+  "استمر، الطريق بيبان قصير لما تبقى ثابت عليه.",
+  "مفيش مجهود بيروح هدر، كله بيتجمع.",
+  "ركّز على اللي قدامك، والباقي هيتظبط بالوقت.",
+  "يوم كويس أو يوم صعب، المهم إنك ما بتوقفش.",
+  "النجاح مش لحظة، هو تراكم أيام زي دي."
+];
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove('show'), 7000);
+}
+
+function showMotivation() {
+  const msg = MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)];
+  showToast(msg);
+}
+
+document.getElementById('resetBtn').addEventListener('click', (e) => {
+  const btn = e.currentTarget;
+  armConfirm(btn, () => {
+    const currentPct = updateProgress();
+    appData.history.push({ date: todayKey(), pct: currentPct });
+    if (appData.history.length > 20) appData.history = appData.history.slice(-20);
+    data.forEach(dayObj => dayObj.sections.forEach(section => section.items.forEach(item => item.done = false)));
+    appData.backlog.forEach(item => item.done = false);
+    saveData();
+    render();
+    renderBacklog();
+    renderHistory();
+    showMotivation();
+  });
+});
+
+renderHistory();
+
+document.getElementById('wipeDaysBtn').addEventListener('click', (e) => {
+  const btn = e.currentTarget;
+  armConfirm(btn, () => {
+    data.forEach(dayObj => dayObj.sections.forEach(section => { section.items = []; }));
+    appData.currentDayIndex = todayScheduleIndex();
+    saveData();
+    render();
+    showToast('اتمسحت كل مهام الأيام — تقدر تضيف مهامك الخاصة دلوقتي من "+ إضافة مهمة".');
+  });
+});
+
+function renderBacklog() {
+  const list = document.getElementById('backlogList');
+  list.innerHTML = '';
+
+  appData.backlog.forEach((item, itemIdx) => {
+    const li = document.createElement('li');
+    li.className = 'item' + (item.done ? ' checked' : '');
+    li.draggable = true;
+    li.dataset.itemIdx = itemIdx;
+    const id = `backlog-i${itemIdx}`;
+
+    const dragHandle = document.createElement('span');
+    dragHandle.className = 'drag-handle';
+    dragHandle.textContent = '⋮⋮';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = id;
+    checkbox.checked = item.done;
+    checkbox.addEventListener('change', () => {
+      item.done = checkbox.checked;
+      li.classList.toggle('checked', checkbox.checked);
+      if (checkbox.checked) taskDoneFeedback();
+      saveData();
+      updateBacklogCount();
+    });
+
+    const labelWrap = document.createElement('div');
+    labelWrap.className = 'label-wrap';
+    const label = document.createElement('label');
+    label.setAttribute('for', id);
+    label.textContent = item.text;
+    labelWrap.appendChild(label);
+
+    if (item.note) {
+      const noteEl = document.createElement('div');
+      noteEl.className = 'item-note';
+      noteEl.textContent = item.note;
+      labelWrap.appendChild(noteEl);
+    }
+
+    if (item.examLink) {
+      const linkTag = document.createElement('div');
+      linkTag.className = 'item-note';
+      linkTag.style.color = 'var(--rest, #3E6FA8)';
+      linkTag.textContent = '🔗 مرتبط بامتحان: ' + item.examLink;
+      labelWrap.appendChild(linkTag);
+    }
+
+    const examLinkSelect = document.createElement('select');
+    examLinkSelect.className = 'exam-link-select';
+    examLinkSelect.title = 'اربط بامتحان';
+    examLinkSelect.style.cssText = 'font-size:11px;max-width:70px;border:none;background:transparent;color:var(--ink-soft);';
+    const noneOpt = document.createElement('option');
+    noneOpt.value = '';
+    noneOpt.textContent = '🔗 بدون';
+    examLinkSelect.appendChild(noneOpt);
+    appData.exams.forEach(exam => {
+      const opt = document.createElement('option');
+      opt.value = exam.subject;
+      opt.textContent = exam.subject;
+      if (item.examLink === exam.subject) opt.selected = true;
+      examLinkSelect.appendChild(opt);
+    });
+    examLinkSelect.addEventListener('change', () => {
+      item.examLink = examLinkSelect.value || null;
+      saveData();
+      renderBacklog();
+    });
+    if (!appData.exams.length) examLinkSelect.style.display = 'none';
+
+    const actions = document.createElement('div');
+    actions.className = 'item-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'icon-btn edit';
+    editBtn.type = 'button';
+    editBtn.title = 'تعديل';
+    editBtn.textContent = '✎';
+    editBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      startEdit();
+    });
+
+    const noteBtn = document.createElement('button');
+    noteBtn.className = 'icon-btn note' + (item.note ? ' note-toggle-active' : '');
+    noteBtn.type = 'button';
+    noteBtn.title = 'ملاحظة';
+    noteBtn.textContent = '📝';
+    noteBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      startNoteEdit();
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'icon-btn delete';
+    delBtn.type = 'button';
+    delBtn.title = 'حذف';
+    delBtn.textContent = '×';
+    delBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      armConfirm(delBtn, () => {
+        appData.backlog.splice(itemIdx, 1);
+        saveData();
+        renderBacklog();
+      });
+    });
+
+    const pomodoroLink = document.createElement('button');
+    pomodoroLink.className = 'icon-btn pomodoro-link';
+    pomodoroLink.type = 'button';
+    pomodoroLink.title = 'ابدأ بومودورو للمهمة دي';
+    pomodoroLink.textContent = '▶️';
+    pomodoroLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.openPomodoroForTask(item.text);
+    });
+
+    actions.appendChild(editBtn);
+    actions.appendChild(noteBtn);
+    actions.appendChild(pomodoroLink);
+    actions.appendChild(examLinkSelect);
+    actions.appendChild(delBtn);
+
+    li.appendChild(dragHandle);
+    li.appendChild(checkbox);
+    li.appendChild(labelWrap);
+    li.appendChild(actions);
+    list.appendChild(li);
+
+    li.addEventListener('dragstart', () => li.classList.add('dragging'));
+    li.addEventListener('dragend', () => {
+      li.classList.remove('dragging');
+      list.querySelectorAll('.item').forEach(x => x.classList.remove('drag-over'));
+    });
+    li.addEventListener('dragover', (e) => { e.preventDefault(); li.classList.add('drag-over'); });
+    li.addEventListener('dragleave', () => li.classList.remove('drag-over'));
+    li.addEventListener('drop', (e) => {
+      e.preventDefault();
+      li.classList.remove('drag-over');
+      const fromIdx = parseInt(list.querySelector('.dragging')?.dataset.itemIdx, 10);
+      const toIdx = parseInt(li.dataset.itemIdx, 10);
+      if (isNaN(fromIdx) || isNaN(toIdx) || fromIdx === toIdx) return;
+      const moved = appData.backlog.splice(fromIdx, 1)[0];
+      appData.backlog.splice(toIdx, 0, moved);
+      saveData();
+      renderBacklog();
+    });
+
+    function startEdit() {
+      li.classList.add('editing');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'edit-input';
+      input.value = item.text;
+      labelWrap.innerHTML = '';
+      labelWrap.appendChild(input);
+      input.focus();
+      input.select();
+
+      function finish(save) {
+        if (save) {
+          const val = input.value.trim();
+          if (val) item.text = val;
+        }
+        li.classList.remove('editing');
+        saveData();
+        renderBacklog();
+      }
+
+      input.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
+        if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+      });
+      input.addEventListener('blur', () => finish(true));
+    }
+
+    function startNoteEdit() {
+      labelWrap.innerHTML = '';
+      labelWrap.appendChild(label);
+      const textarea = document.createElement('textarea');
+      textarea.className = 'note-input';
+      textarea.rows = 2;
+      textarea.placeholder = 'اكتب ملاحظة...';
+      textarea.value = item.note || '';
+      labelWrap.appendChild(textarea);
+      textarea.focus();
+
+      function finish() {
+        item.note = textarea.value.trim();
+        saveData();
+        renderBacklog();
+      }
+      textarea.addEventListener('blur', finish);
+      textarea.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); finish(); }
+        if (ev.key === 'Escape') { ev.preventDefault(); renderBacklog(); }
+      });
+    }
+  });
+
+  updateBacklogCount();
+}
+
+function updateBacklogCount() {
+  const total = appData.backlog.length;
+  const done = appData.backlog.filter(i => i.done).length;
+  document.getElementById('backlogCount').textContent = `${done}/${total}`;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('backlogBar').style.width = pct + '%';
+  document.getElementById('backlogPct').textContent = pct + '%';
+}
+
+document.getElementById('addBacklogBtn').addEventListener('click', () => {
+  appData.backlog.push({ text: 'تراكم جديد', done: false });
+  saveData();
+  renderBacklog();
+  const items = document.querySelectorAll('#backlogList .item');
+  const last = items[items.length - 1];
+  if (last) last.querySelector('.icon-btn.edit').click();
+});
+
+render();
+renderBacklog();
+renderExams();
+
+function formatExamDate(iso) {
+  if (!iso) return 'من غير ميعاد لسه';
+  const d = new Date(iso);
+  try {
+    return new Intl.DateTimeFormat('ar-EG', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(d);
+  } catch (e) {
+    return d.toLocaleString();
+  }
+}
+
+function examCountdown(iso) {
+  if (!iso) return { text: 'حدد الميعاد', cls: '' };
+  const diff = new Date(iso).getTime() - Date.now();
+  if (diff <= 0) return { text: 'انتهى الميعاد', cls: 'past' };
+  const mins = Math.floor(diff / 60000);
+  const days = Math.floor(mins / 1440);
+  const hours = Math.floor((mins % 1440) / 60);
+  const remMins = mins % 60;
+  let text;
+  if (days > 0) text = `باقي ${days} يوم و${hours} ساعة`;
+  else if (hours > 0) text = `باقي ${hours} ساعة و${remMins} دقيقة`;
+  else text = `باقي ${remMins} دقيقة`;
+  const urgent = diff < 24 * 3600 * 1000;
+  return { text, cls: urgent ? 'urgent' : '' };
+}
+
+function renderExams() {
+  const list = document.getElementById('examList');
+  list.innerHTML = '';
+  document.getElementById('examCount').textContent = appData.exams.length;
+
+  const sorted = appData.exams
+    .map((exam, idx) => ({ exam, idx }))
+    .sort((a, b) => {
+      if (!a.exam.datetime) return 1;
+      if (!b.exam.datetime) return -1;
+      return new Date(a.exam.datetime) - new Date(b.exam.datetime);
+    });
+
+  if (!sorted.length) {
+    list.innerHTML = '<div style="font-size:12.5px;color:var(--ink-soft);padding:6px 2px;">مفيش امتحانات مضافة لسه</div>';
+    return;
+  }
+
+  sorted.forEach(({ exam, idx }) => {
+    const li = document.createElement('li');
+    li.className = 'exam-item';
+
+    const main = document.createElement('div');
+    main.className = 'exam-main';
+    const subjectEl = document.createElement('div');
+    subjectEl.className = 'exam-subject';
+    subjectEl.textContent = exam.subject;
+    const dtEl = document.createElement('div');
+    dtEl.className = 'exam-datetime';
+    dtEl.textContent = formatExamDate(exam.datetime);
+    main.appendChild(subjectEl);
+    main.appendChild(dtEl);
+
+    const linkedTasks = [];
+    data.forEach(dayObj => dayObj.sections.forEach(section => section.items.forEach(it => {
+      if (it.examLink === exam.subject) linkedTasks.push({ text: it.text, done: it.done, where: dayObj.day });
+    })));
+    appData.backlog.forEach(it => {
+      if (it.examLink === exam.subject) linkedTasks.push({ text: it.text, done: it.done, where: 'التراكمات' });
+    });
+
+    if (linkedTasks.length) {
+      const linkedToggle = document.createElement('div');
+      linkedToggle.style.cssText = 'font-size:11.5px;color:var(--rest,#3E6FA8);cursor:pointer;margin-top:3px;';
+      const doneCount = linkedTasks.filter(t => t.done).length;
+      linkedToggle.textContent = `🔗 ${doneCount}/${linkedTasks.length} مهام مرتبطة`;
+      const linkedList = document.createElement('ul');
+      linkedList.style.cssText = 'display:none;list-style:none;padding:0;margin:4px 0 0;font-size:11.5px;color:var(--ink-soft);';
+      linkedTasks.forEach(t => {
+        const li2 = document.createElement('li');
+        li2.textContent = (t.done ? '✅ ' : '⬜ ') + t.text + ' (' + t.where + ')';
+        linkedList.appendChild(li2);
+      });
+      linkedToggle.addEventListener('click', () => {
+        linkedList.style.display = linkedList.style.display === 'none' ? 'block' : 'none';
+      });
+      main.appendChild(linkedToggle);
+      main.appendChild(linkedList);
+    }
+
+    const countdown = examCountdown(exam.datetime);
+    const countdownEl = document.createElement('span');
+    countdownEl.className = 'exam-countdown' + (countdown.cls ? ' ' + countdown.cls : '');
+    countdownEl.textContent = countdown.text;
+
+    const actions = document.createElement('div');
+    actions.className = 'item-actions';
+    actions.style.display = 'flex';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'icon-btn edit';
+    editBtn.type = 'button';
+    editBtn.title = 'تعديل';
+    editBtn.textContent = '✎';
+    editBtn.addEventListener('click', (e) => { e.preventDefault(); startExamEdit(); });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'icon-btn delete';
+    delBtn.type = 'button';
+    delBtn.title = 'حذف';
+    delBtn.textContent = '×';
+    delBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      armConfirm(delBtn, () => {
+        appData.exams.splice(idx, 1);
+        saveData();
+        renderExams();
+      });
+    });
+
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+
+    li.appendChild(main);
+    li.appendChild(countdownEl);
+    li.appendChild(actions);
+    list.appendChild(li);
+
+    function startExamEdit() {
+      li.innerHTML = '';
+      const editRow = document.createElement('div');
+      editRow.className = 'exam-edit-row';
+
+      const subjectInput = document.createElement('input');
+      subjectInput.type = 'text';
+      subjectInput.value = exam.subject;
+      subjectInput.placeholder = 'اسم المادة';
+
+      const dtInput = document.createElement('input');
+      dtInput.type = 'datetime-local';
+      if (exam.datetime) dtInput.value = exam.datetime;
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'add-item-btn';
+      saveBtn.type = 'button';
+      saveBtn.textContent = 'حفظ';
+      saveBtn.style.width = 'auto';
+      saveBtn.addEventListener('click', () => {
+        const val = subjectInput.value.trim();
+        if (val) exam.subject = val;
+        exam.datetime = dtInput.value || null;
+        saveData();
+        renderExams();
+      });
+
+      editRow.appendChild(subjectInput);
+      editRow.appendChild(dtInput);
+      editRow.appendChild(saveBtn);
+      li.appendChild(editRow);
+      subjectInput.focus();
+    }
+  });
+}
+
+document.getElementById('addExamBtn').addEventListener('click', () => {
+  appData.exams.push({ subject: 'امتحان جديد', datetime: null });
+  saveData();
+  renderExams();
+});
+
+setInterval(renderExams, 60000);
+
+// --- export / import ---
+async function saveFile(filename, data, mimeType) {
+  // Opened outside claude.ai (e.g. as a saved local file) — window.claude doesn't exist here,
+  // so a normal browser download works fine.
+  if (!window.claude) {
+    try {
+      const blob = (data instanceof Blob) ? data : new Blob([data], { type: mimeType || 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('تم تنزيل الملف.');
+    } catch (err) {
+      showToast('حصل خطأ أثناء التصدير، جرب تاني.');
+    }
+    return;
+  }
+
+  // Inside the claude.ai viewer, use the platform's save capability.
+  try {
+    const downloads = await window.claude.use("downloads").catch(() => null);
+    if (!downloads) {
+      showToast('خاصية التصدير مش متاحة في النسخة دي من الصفحة دلوقتي.');
+      return;
+    }
+    const result = await downloads.save({ filename, data });
+    showToast(result && result.status === 'delivered' ? 'تم إرسال الملف.' : 'تم حفظ الملف بنجاح.');
+  } catch (err) {
+    const code = err && err.code;
+    if (code === 'declined') return; // user cancelled, no message needed
+    if (code === 'rate_limited') showToast('في نافذة حفظ مفتوحة بالفعل، استنى شوية وجرب تاني.');
+    else showToast('خطأ: ' + (code || 'unknown') + ' — ' + ((err && err.message) || String(err)));
+  }
+}
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const json = JSON.stringify(appData, null, 2);
+  saveFile('جدول-المذاكرة.json', json, 'application/json');
+});
+
+document.getElementById('shareImageBtn').addEventListener('click', () => {
+  const canvas = document.createElement('canvas');
+  const W = 900, H = 500;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches &&
+     document.documentElement.getAttribute('data-theme') !== 'light');
+  const bg = isDark ? '#141815' : '#F3F4EF';
+  const card = isDark ? '#1D2320' : '#FFFFFF';
+  const ink = isDark ? '#EDEFEA' : '#1F2A24';
+  const inkSoft = isDark ? '#9AA69E' : '#5B6660';
+  const accent = isDark ? '#5FAE84' : '#2F6F4E';
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = card;
+  roundRect(ctx, 30, 30, W - 60, H - 60, 20);
+  ctx.fill();
+
+  ctx.direction = 'rtl';
+  ctx.textAlign = 'right';
+  ctx.fillStyle = ink;
+  ctx.font = '700 34px Tajawal, sans-serif';
+  ctx.fillText('جدول المذاكرة الأسبوعي', W - 70, 100);
+
+  ctx.font = '15px Tajawal, sans-serif';
+  ctx.fillStyle = inkSoft;
+  ctx.fillText(document.getElementById('gregorianDate').textContent, W - 70, 135);
+
+  // big percentage ring (drawn simply as arc)
+  const pct = parseInt(document.getElementById('ringText').textContent, 10) || 0;
+  const cx = 150, cy = 280, r = 90;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = isDark ? '#333A32' : '#DEDDD3';
+  ctx.lineWidth = 16;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (pct / 100) * Math.PI * 2);
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 16;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  ctx.textAlign = 'center';
+  ctx.font = '700 34px Tajawal, sans-serif';
+  ctx.fillStyle = ink;
+  ctx.fillText(pct + '%', cx, cy + 12);
+
+  ctx.textAlign = 'right';
+  ctx.font = '600 22px Tajawal, sans-serif';
+  ctx.fillStyle = ink;
+  const doneTxt = document.getElementById('doneCount').textContent;
+  const totalTxt = document.getElementById('totalCount').textContent;
+  ctx.fillText(`${doneTxt} من ${totalTxt} مهمة خلصانة`, W - 70, 220);
+
+  ctx.font = '18px Tajawal, sans-serif';
+  ctx.fillStyle = inkSoft;
+  ctx.fillText(document.getElementById('streakBadge').textContent, W - 70, 260);
+
+  ctx.font = '18px Tajawal, sans-serif';
+  ctx.fillStyle = inkSoft;
+  ctx.fillText(`${appData.backlog.filter(i=>i.done).length}/${appData.backlog.length} من التراكمات خلصانة`, W - 70, 300);
+
+  ctx.font = '13px Tajawal, sans-serif';
+  ctx.fillStyle = inkSoft;
+  ctx.textAlign = 'center';
+  ctx.fillText('تم الإنشاء بواسطة معاذ صبري', W / 2, H - 45);
+
+  function roundRect(c, x, y, w, h, radius) {
+    c.beginPath();
+    c.moveTo(x + radius, y);
+    c.arcTo(x + w, y, x + w, y + h, radius);
+    c.arcTo(x + w, y + h, x, y + h, radius);
+    c.arcTo(x, y + h, x, y, radius);
+    c.arcTo(x, y, x + w, y, radius);
+    c.closePath();
+  }
+
+  canvas.toBlob((blob) => {
+    if (!blob) { showToast('حصل خطأ أثناء إنشاء الصورة.'); return; }
+    saveFile('تقدم-المذاكرة.png', blob);
+  }, 'image/png');
+});
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('fileImportInput').click();
+});
+document.getElementById('fileImportInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!parsed || !Array.isArray(parsed.days)) throw new Error('bad format');
+      if (!parsed.backlog) parsed.backlog = [];
+      if (!parsed.streak) parsed.streak = { count: 0, lastDate: null };
+      if (!parsed.history) parsed.history = [];
+      if (!parsed.reminders) parsed.reminders = [];
+      if (!parsed.exams) parsed.exams = [];
+      if (!parsed.subjectWeights) parsed.subjectWeights = {};
+      if (typeof parsed.currentDayIndex !== 'number') parsed.currentDayIndex = todayScheduleIndex();
+      appData = parsed;
+      data = appData.days;
+      saveData();
+      render();
+      renderBacklog();
+      renderHistory();
+      renderExams();
+      showToast('تم استيراد البيانات بنجاح.');
+    } catch (err) {
+      showToast('الملف ده مش بصيغة صحيحة.');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+// --- reminders (work only while this page is open in the browser) ---
+function renderReminderBadge() {
+  const btn = document.getElementById('reminderBtn');
+  btn.textContent = appData.reminders.length
+    ? `🔔 تذكيرات (${appData.reminders.length})`
+    : '🔔 إضافة تذكير';
+}
+renderReminderBadge();
+
+function renderReminderChips() {
+  const wrap = document.getElementById('reminderChips');
+  wrap.innerHTML = '';
+  if (!appData.reminders.length) {
+    wrap.innerHTML = '<span style="font-size:12.5px;color:var(--ink-soft);">مفيش تذكيرات مضافة</span>';
+    return;
+  }
+  appData.reminders.forEach((time, idx) => {
+    const chip = document.createElement('span');
+    chip.className = 'reminder-chip';
+    chip.innerHTML = `<span>${time}</span>`;
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.textContent = '×';
+    removeBtn.addEventListener('click', () => {
+      appData.reminders.splice(idx, 1);
+      saveData();
+      renderReminderBadge();
+      renderReminderChips();
+    });
+    chip.appendChild(removeBtn);
+    wrap.appendChild(chip);
+  });
+}
+
+document.getElementById('reminderBtn').addEventListener('click', () => {
+  renderReminderChips();
+  document.getElementById('reminderModal').classList.add('show');
+});
+document.getElementById('reminderCancelBtn').addEventListener('click', () => {
+  document.getElementById('reminderModal').classList.remove('show');
+});
+document.getElementById('reminderModal').addEventListener('click', (e) => {
+  if (e.target.id === 'reminderModal') e.currentTarget.classList.remove('show');
+});
+document.getElementById('reminderAddBtn').addEventListener('click', async () => {
+  const input = document.getElementById('reminderTimeInput');
+  const val = input.value;
+  if (!val) {
+    showToast('اختار وقت الأول.');
+    return;
+  }
+  if (!appData.reminders.includes(val)) {
+    appData.reminders.push(val);
+    appData.reminders.sort();
+    saveData();
+  }
+  if (window.Notification && Notification.permission === 'default') {
+    try { await Notification.requestPermission(); } catch (e) {}
+  }
+  input.value = '';
+  renderReminderBadge();
+  renderReminderChips();
+});
+
+let lastReminderFireKey = null;
+setInterval(() => {
+  if (!appData.reminders.length) return;
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const nowStr = `${hh}:${mm}`;
+  const fireKey = `${todayKey()}-${nowStr}`;
+  if (appData.reminders.includes(nowStr) && lastReminderFireKey !== fireKey) {
+    lastReminderFireKey = fireKey;
+    if (window.Notification && Notification.permission === 'granted') {
+      new Notification('وقت المذاكرة!', { body: 'افتح جدولك وشوف إيه اللي مستنيك النهاردة.' });
+    } else {
+      showToast('⏰ وقت المذاكرة! افتح جدولك.');
+    }
+  }
+}, 30000);
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
